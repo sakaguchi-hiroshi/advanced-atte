@@ -15,7 +15,6 @@ class Work_Time extends Model
         'user_id' => 'required',
         'date' => 'required',
         'start_time' => 'required',
-        'end_time' => 'required',
     );
 
     public function break_times(){

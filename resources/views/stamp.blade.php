@@ -10,26 +10,27 @@
     <div class="header__inner">
       <h1 class="header__title">Atte</h1>
       <nav class="nav">
-        <a href="" class="home"></a>
-        <a href="" class="calendar"></a>
-        <a href="" class="logout"></a>
+        <a href="" class="home">ホーム</a>
+        <a href="" class="calendar">日付一覧</a>
+        <a href="" class="logout">ログアウト</a>
       </nav>
     </div>
   </header>
 
   <main class="main">
-    <p class="auth-user">{{$user->name}}さんお疲れ様です！
+    <p class="user-name">{{$authuser->name}}さんお疲れ様です！
     </p>
     <div class="card">
-      <form class="start_time" action="">
-        <input type="hidden">
-        <input type="hidden">
-        <button>勤務開始</button>
+      <form class="start_time" action="/work/start" method="POST">
+        @csrf
+        <input type="hidden" name="user_id" value="{{$authuser->id}}">
+        <input type="hidden" name="date" value="{{$date}}">
+        <button type="submit" name="start_time" value="{{$datetime}}">勤務開始</button>
       </form>
-      <form class="end_time" action="">
-        <input type="hidden">
-        <input type="hidden">
-        <button>勤務終了</button>
+      <form class="end_time" action="/work/end">
+        <input type="hidden" name="user_id" value="{{$authuser->id}}">
+        <input type="hidden" name="date" value="{{$date}}">
+        <button type="submit" name="end_time" value="{{$datetime}}">勤務終了</button>
       </form>
       <form class="break_in" action="">
         <input type="hidden">
