@@ -12,33 +12,53 @@ class WorkTimeController extends Controller
     public function index()
     {
         $authuser = Auth::user();
-        $date = new Carbon('today');
-        $datetime = Carbon::now();
-        $params = [
-            'authuser' => $authuser,
-            'date' => $date,
-            'datetime' => $datetime,
-        ];
-        return view('stamp', $params);
+        return view('stamp', ['authuser' => $authuser]);
     }
 
     public function create(Request $request)
     {
-        // dd($request->all());
-        $this->validate($request, Work_Time::$rules);
+        // dd($date['date']);
+        $user = Auth::user();
+        $oldTimeIn = Work_Time::where('user_id', $user->id)->latest()->first();
+
+        $oldDay = '';
+
+        if($oldTimeIn) {
+            $oldStartTime = new Carbon($oldTimeIn->start_time);
+            $oldDay = $oldStartTime->startOfDay();
+        }
+
+        $today = Carbon::today();
+
+        if(($oldDay == $today) && (empty($oldTimeIn->end_time))) {
+            return redirect()->back()->with('message', '出勤打刻済みです');
+        }
+
+        $date = new Carbon();
+        $date = [
+            'date' => Carbon::today(),
+            'start_time' => Carbon::now(),
+        ];
+        $this->validate($request, $date, Work_Time::$rules);
         Work_Time::create([
             'user_id' => $request->user_id,
-            'date' => $request->date,
-            'start_time' => $request->start_time,
+            'date' => $date['date'],
+            'start_time' => $date['start_time'],
         ]);
         return redirect('/work/stamp');
     }
     
-    // public function update(Request $request)
-    // {
-    //     $this->validate($request, WorkTime::$rules);
-    //     $data = $request->all();
-    //     WorkTime::where('user_id', $request->user_id)
-    //     ->where('date', $request->date)->get();
-    // }
+    public function update(Request $request)
+    {
+        $user = Auth::user();
+        $oldTimeOut = Work_Time::with('book_time')->where('user_id', $request->id)->latest()->first();
+        
+        if($oldTimeOut) {
+            if(empty($oldTimeOut->end_time)) {
+                if($oldTimeOut->book_time->break_in && !$oldTimeOut->book_time->break_out) {
+                    return redirect()->back()->with('message', '休憩終了が打刻されていません');
+                } elseif()
+            }
+        }
+    }
 }

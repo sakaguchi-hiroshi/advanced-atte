@@ -14,7 +14,6 @@ class Break_Time extends Model
     public static $rules = array(
         'work__time_id' => 'required',
         'break_in' => 'required',
-        'break_out' => 'required',
     );
 
     public function work_time(){
