@@ -17,6 +17,6 @@ class Break_Time extends Model
     );
 
     public function work_time(){
-        return $this->belongsTo('App\Models\Work_Time');
+        return $this->belongsTo('App\Models\Work_Time', 'work__time_id');
     }
 }

@@ -27,16 +27,19 @@
         <input type="hidden" name="user_id" value="{{$authuser->id}}">
         <button type="submit" >勤務開始</button>
       </form>
-      <form class="end_time" action="/work/end">
+      <form class="end_time" action="/work/end" method="POST">
+        @csrf
         <input type="hidden" name="user_id" value="{{$authuser->id}}">
         <button type="submit">勤務終了</button>
       </form>
-      <form class="break_in" action="">
-        <input type="hidden">
+      <form class="break_in" action="/work/break/in" method="POST">
+        @csrf
+        <input type="hidden" name="user_id" value="{{$authuser->id}}">
         <button>休憩開始</button>
       </form>
-      <form class="break_out" action="">
-        <input type="hidden">
+      <form class="break_out" action="/work/break/out" method="POST">
+        @csrf
+        <input type="hidden" name="user_id" value="{{$authuser->id}}">
         <button>休憩終了</button>
       </form>
     </div>

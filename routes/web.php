@@ -19,9 +19,9 @@ Route::group(['prefix' => '/work'], function() {
     Route::group(['middleware' => ['auth']], function() {
         Route::get('/stamp', [WorkTimeController::class, 'index'])->name('stamp');
         Route::post('/start', [WorkTimeController::class, 'create'])->name('stamp');
-        // Route::post('/end', [WorkTimeController::class, 'update'])->name('stamp');
-        // Route::post('/break/in', [BreakTimeController::class, 'create'])->name('stamp');
-        // Route::post('/break/out', [BreakTimeController::class, 'update'])->name('stamp');
+        Route::post('/end', [WorkTimeController::class, 'update'])->name('stamp');
+        Route::post('/break/in', [BreakTimeController::class, 'create'])->name('stamp');
+        Route::post('/break/out', [BreakTimeController::class, 'update'])->name('stamp');
         // Route::post('/date', [AttendanceController::class, 'index'])->name('calendar');
         // Route::post('/attendance', [AttendanceController::class, 'show'])->name('attendance');
     });
