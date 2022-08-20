@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\WorkTimeController;
 use App\Http\Controllers\BreakTimeController;
-use App\Http\Controllers\AttendaceController;
+use App\Http\Controllers\AttendanceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,7 +22,7 @@ Route::group(['prefix' => '/work'], function() {
         Route::post('/end', [WorkTimeController::class, 'update'])->name('stamp');
         Route::post('/break/in', [BreakTimeController::class, 'create'])->name('stamp');
         Route::post('/break/out', [BreakTimeController::class, 'update'])->name('stamp');
-        // Route::post('/date', [AttendanceController::class, 'index'])->name('calendar');
+        Route::get('/calendar', [AttendanceController::class, 'index'])->name('calendar');
         // Route::post('/attendance', [AttendanceController::class, 'show'])->name('attendance');
     });
 });

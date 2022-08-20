@@ -12,28 +12,43 @@ class BreakTimeController extends Controller
 {
     public function create(Request $request)
     {
-        $oldTimeIn = Work_Time::with('break_times')->where('user_id', $request->user_id)->latest()->first();
-        dd($oldTimeIn->break_times);
-        if($oldTimeIn->start_time && !$oldTimeIn->end_time && !($oldTimeIn->break_times->break_in)) {
-            $oldTimeIn->break_times->update([
-                'work__time_id' => $oldTimeIn->id,
-                'break_in' => Carbon::now(),
-            ]);
-            return redirect()->back();
+        $oldTimeIn = Work_Time::where('user_id', $request->user_id)->latest()->first();
+        $latestBreakTime = Break_Time::where('work__time_id', $oldTimeIn->id)->latest()->first();
+        if($oldTimeIn->start_time && !($oldTimeIn->end_time)) {
+            if(empty($latestBreakTime->break_in)) {
+                $data = [
+                    'break_in' => Carbon::now(),
+                ];
+                Break_Time::create([
+                    'work__time_id' => $oldTimeIn->id,
+                    'break_in' => $data['break_in'],
+                ]);
+                return redirect()->back();
+            }elseif($latestBreakTime->break_in && $latestBreakTime->break_out) {
+                $data = [
+                    'break_in' => Carbon::now(),
+                ];
+                Break_Time::create([
+                    'work__time_id' => $oldTimeIn->id,
+                    'break_in' => $data['break_in'],
+                ]);
+                return redirect()->back();
+            }
         }
         return redirect()->back()->with('message', '休憩開始が実行できません');
     }
-
-    public function update()
+    
+    public function update(Request $request)
     {
-        $oldTimeIn = Work_Time::with('break_times')->where('user_id', $request->user_id)->latest()->first();
-        if($oldTimeIn->break_times->break_in && !($oldTimeIn->break_times->break_out)) {
-            $oldTimeIn->break_times->update([
-                'work__time_id' => $oldTimeIn->id,
+        $oldTimeIn = Work_Time::where('user_id', $request->user_id)->latest()->first();
+        $latestBreakTime = Break_Time::where('work__time_id', $oldTimeIn->id)->latest()->first();
+        if($latestBreakTime->break_in && empty($latestBreakTime->break_out)) {
+            $latestBreakTime->update([
+                'work__time_id' => $latestBreakTime->work__time_id,
                 'break_out' => Carbon::now(),
             ]);
             return redirect()->back();
         }
-        return redirect()->back()->with('message', '休憩開始が実行できません');
+        return redirect()->back()->with('message', '休憩終了が実行できません');
     }
 }

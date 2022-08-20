@@ -16,7 +16,7 @@ class CreateBreakTimesTable extends Migration
         Schema::create('break__times', function (Blueprint $table) {
             $table->id();
             $table->foreignId('work__time_id')->constrained('work__times');
-            $table->dateTime('break_in')->nullable();
+            $table->dateTime('break_in');
             $table->dateTime('break_out')->nullable();
             $table->timestamp('created_at')->useCurrent()->nullable();
             $table->timestamp('updated_at')->useCurrent()->nullable();

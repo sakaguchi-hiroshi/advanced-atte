@@ -11,7 +11,7 @@
       <h1 class="header__title">Atte</h1>
       <nav class="nav">
         <a href="" class="home">ホーム</a>
-        <a href="" class="calendar">日付一覧</a>
+        <a href="{{ url('/work/calendar')}}" class="calendar">日付一覧</a>
         <a href="" class="logout">ログアウト</a>
       </nav>
     </div>

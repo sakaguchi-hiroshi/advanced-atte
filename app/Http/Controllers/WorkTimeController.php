@@ -45,24 +45,22 @@ class WorkTimeController extends Controller
             'date' => $date['date'],
             'start_time' => $date['start_time'],
         ]);
-        // $worktime = Work_Time::where('user_id', $user->id)->latest()->first();
-        // Break_Time::create([
-        //     'work__time_id' => $worktime->user_id,
-        // ]);
         return redirect('/work/stamp');
     }
     
     public function update(Request $request)
     {
         $user = Auth::user();
-        $oldTimeOut = Work_Time::with('break_times')->where('user_id', $request->user_id)->latest()->first();
-        $oldDay = new Carbon($oldTimeOut->start_time->startOfDay());
+        $oldTimeOut = Work_Time::where('user_id', $request->user_id)->latest()->first();
+        $latestBreakTime = Break_Time::where('work__time_id', $oldTimeOut->id)->latest()->first();
+        $latestWorkTimeStartTime = new Carbon($oldTimeOut->start_time);
+        $oldDay = $latestWorkTimeStartTime->startOfDay();
         $addDay = $oldDay->addDay();
         $today = Carbon::today();
         
         if($oldTimeOut) {
-            if(empty($oldTimeOut->break_out)) {
-                if($oldTimeOut->break_time->break_in && !($oldTimeOut->break_time->break_out)) {
+            if(empty($oldTimeOut->end_time)) {
+                if($latestBreakTime->break_in && !($latestBreakTime->break_out)) {
                     return redirect()->back()->with('message', '休憩終了が打刻されていません');
                 }elseif($addDay == $today) {
                     $endOfDay = new Carbon($oldDay->endOfDay());
@@ -74,7 +72,7 @@ class WorkTimeController extends Controller
                     $oldTimeOut->update([
                         'user_id' => $request->user_id,
                         'date' => $date['date'],
-                        'start_time' => $date['end_time'],
+                        'end_time' => $date['end_time'],
                     ]);
                     $date = new Carbon();
                     $date = [
@@ -94,7 +92,7 @@ class WorkTimeController extends Controller
                     $date = new Carbon();
                     $date = [
                         'date' => Carbon::today(),
-                        'start_time' => $oldTimeOut->startTime,
+                        'start_time' => $oldTimeOut->start_time,
                         'end_time' => Carbon::now(),
                     ];
                     $this->validate($request, $date, Work_Time::$rules);
@@ -106,6 +104,8 @@ class WorkTimeController extends Controller
                     ]);
                     return redirect('/work/stamp');
                 }
+            }else{
+                return redirect()->back()->with('message','出勤打刻がされていません');
             }
         }
     }
