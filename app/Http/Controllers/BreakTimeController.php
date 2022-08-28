@@ -20,6 +20,7 @@ class BreakTimeController extends Controller
                     'break_in' => Carbon::now(),
                 ];
                 Break_Time::create([
+                    'user_id' => $oldTimeIn->user_id,
                     'work__time_id' => $oldTimeIn->id,
                     'break_in' => $data['break_in'],
                 ]);
@@ -29,6 +30,7 @@ class BreakTimeController extends Controller
                     'break_in' => Carbon::now(),
                 ];
                 Break_Time::create([
+                    'user_id' => $oldTimeIn->user_id,
                     'work__time_id' => $oldTimeIn->id,
                     'break_in' => $data['break_in'],
                 ]);

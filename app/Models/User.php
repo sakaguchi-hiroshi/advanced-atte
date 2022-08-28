@@ -51,4 +51,8 @@ class User extends Authenticatable
     public function work_times(){
         return $this->hasMany('App\Models\Work_Time');
     }
+    
+    public function break_times(){
+        return $this->hasMany('App\Models\Break_Time');
+    }
 }

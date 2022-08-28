@@ -12,7 +12,7 @@
       <nav class="nav">
         <a href="" class="home">ホーム</a>
         <a href="{{ url('/work/calendar')}}" class="calendar">日付一覧</a>
-        <a href="" class="logout">ログアウト</a>
+        <a href="/logout" class="logout">ログアウト</a>
       </nav>
     </div>
   </header>
