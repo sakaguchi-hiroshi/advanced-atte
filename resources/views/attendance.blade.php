@@ -40,11 +40,11 @@
             <th>勤務時間</th>
           </tr>
           <tr>
-            <td>{{  }}</td>
-            <td>{{  }}</td>
-            <td>{{  }}</td>
-            <td></td>
-            <td></td>
+            <td>{{ $workTime->user->name }}</td>
+            <td>{{ $startTime }}</td>
+            <td>{{ $endTime }}</td>
+            <td>{{ $totalBreakTime }}</td>
+            <td>{{ $totalWorkTime }}</td>
           </tr>
         </table>
       </div>

@@ -7,7 +7,6 @@ use App\Models\User;
 use App\Models\Work_Time;
 use App\Models\Break_Time;
 use Carbon\Carbon;
-use DateTime;
 
 class AttendanceController extends Controller
 {
@@ -71,30 +70,36 @@ class AttendanceController extends Controller
         $dt = new Carbon(time: "{$date}");
         $attendances = $work_time->whereDate('date', $dt)->with('user', 'break_times')->get();
         foreach($attendances as $workTime){
-            $startTime = $workTime->start_time;
-            $endTime = $workTime->end_time;
-            $objStartTime = new DateTime($startTime);
-            $objEndTime = new DateTime($endTime);
-            // $startTime = new Carbon($workTime->start_time);
-            // $endTime = new Carbon($workTime->end_time);
-            $diffWorkTime = $objStartTime->diff($objEndTime);
-            
+            $workStart = new Carbon($workTime->start_time);
+            $workEnd = new Carbon($workTime->end_time);
+            $diffStayHours = $workStart->diffInHours($workEnd);
+            $diffStayMinutes = $workStart->diffInMinutes($workEnd);
+            $diffStaySeconds = $workStart->diffInSeconds($workEnd);
             
             foreach($workTime->break_times as $breakTime){
-                $breakIn = $breakTime->break_in;
-                $breakOut = $breakTime->break_out;
-                $objBreakIn = new DateTime($breakIn);
-                $objBreakOut = new DateTime($breakOut);
-                // $breakIn = new Carbon($breakTime->break_in);
-                // $breakOut = new Carbon($breakTime->break_out);
-                $diffBreakTime = $objBreakIn->diff($objBreakOut);
+                $breakStart = new Carbon($breakTime->break_in);
+                $breakEnd = new Carbon($breakTime->break_out);
+                $diffBreakHours = $breakStart->diffInHours($breakEnd);
+                $diffBreakMinutes = $breakStart->diffInMinutes($breakEnd);
+                $diffBreakSeconds = $breakStart->diffInSeconds($breakEnd);
             }
         }
-        $totalWorkTimeDiff = $diffWorkTime->diff($diffBreakTime);
-        dd($totalWorkTimeDiff);
+        $format = '%02d:%02d:%02d';
+        $workTimeHours = $diffStayHours - $diffBreakHours;
+        $workTimeMinutes = $diffStayMinutes - $diffBreakMinutes;
+        $workTimeSeconds = $diffStaySeconds - $diffBreakSeconds;
+        
+        $startTime = $workStart->format('H:i:s');
+        $endTime = $workEnd->format('H:i:s');
+        $totalWorkTime = sprintf($format, $workTimeHours, $workTimeMinutes, $workTimeSeconds);
+        $totalBreakTime = sprintf($format,$diffBreakHours, $diffBreakMinutes, $diffBreakSeconds);
         $params = [
             'date' => $dt,
-            'attendances' => $attendances,
+            'startTime' => $startTime,
+            'endTime' => $endTime,
+            'workTime' => $workTime,
+            'totalWorkTime' => $totalWorkTime,
+            'totalBreakTime' => $totalBreakTime,
         ];
         return view('attendance', $params);
     }
