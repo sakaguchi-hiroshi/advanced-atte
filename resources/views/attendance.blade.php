@@ -24,7 +24,7 @@
           <input type="hidden" name="date" value="{{$date->subMonthNoOverflow()}}">
           <input class="btnPrev" type="submit" value="<">
         </form>
-        <div class="date">{{ $date }}</div>
+        <div class="date">{{ $date->addMonth() }}</div>
         <form action="/work/attendance/date/next" method="POST" class="dateNext">
           <input type="hidden" name="date" value="{{$date->addMonthNoOverflow()}}">
           <input class="btnNext" type="submit" value=">">
@@ -33,19 +33,19 @@
       <div class="contentAttendance">
         <table>
           <tr>
-            <th></th>
-            <th></th>
-            <th></th>
-            <th></th>
-            <th></th>
+            <th>名前</th>
+            <th>勤務開始</th>
+            <th>勤務終了</th>
+            <th>休憩時間</th>
+            <th>勤務時間</th>
           </tr>
-          @foreach($attendance as $attendance)
+          @foreach($attendances as $workTime)
           <tr>
             <td>{{ $attendance->name }}</td>
-            <td>{{ $attendance->start_time }}</td>
-            <td>{{ $attendance->end_time }}</td>
-            <td>{{ $attendance->break_in }}</td>
-            <td>{{ $attendance->break_out }}</td>
+            <td>{{ $workTime->start_time }}</td>
+            <td>{{ $workTime->end_Time }}</td>
+            <td></td>
+            <td></td>
           </tr>
           @endforeach
         </table>

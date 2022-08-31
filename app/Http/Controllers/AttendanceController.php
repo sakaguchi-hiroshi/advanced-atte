@@ -7,7 +7,7 @@ use App\Models\User;
 use App\Models\Work_Time;
 use App\Models\Break_Time;
 use Carbon\Carbon;
-use App\Http\Controllers\AttendanceController;
+use DateTime;
 
 class AttendanceController extends Controller
 {
@@ -19,8 +19,8 @@ class AttendanceController extends Controller
             $month = $dt->month;
             $date = new Carbon(time: "{$year}-{$month}-01");
             $addDay = ($date->copy()->endOfMonth()->isSunday()) ? 7 : 0;
+            $count = 31 + $addDay + $date->dayOfWeek ;
             $date->subDay($date->dayOfWeek);
-            $count = 31 + $addDay + $date->dayOfWeek;
             $count = ceil($count / 7) * 7;
             $dates = [];
             
@@ -38,8 +38,8 @@ class AttendanceController extends Controller
             $month = $dt->month;
             $date = new Carbon(time: "{$year}-{$month}-01");
             $addDay = ($date->copy()->endOfMonth()->isSunday()) ? 7 : 0;
-            $date->subDay($date->dayOfWeek);
             $count = 31 + $addDay + $date->dayOfWeek;
+            $date->subDay($date->dayOfWeek);
             $count = ceil($count / 7) * 7;
             $dates = [];
             
@@ -69,20 +69,32 @@ class AttendanceController extends Controller
     public function show($date, Work_Time $work_time)
     {
         $dt = new Carbon(time: "{$date}");
-        $attendance = $work_time->with(['break_times' => function($q){
-            $q = with('user');
-        }])->whereDate('date', $dt)->get();
-        // $attendance = $work_time->with(['break_times' => function($q){
-        //     $q = with('user');
-        // }])->whereDate('date', $dt)->get();
-        // $attendance = $break_time->with(['work_time' => function($q){
-        //     $q = with('user');
-        // }])->whereDate('date', $dt)->get();
-        
-        
+        $attendances = $work_time->whereDate('date', $dt)->with('user', 'break_times')->get();
+        foreach($attendances as $workTime){
+            $startTime = $workTime->start_time;
+            $endTime = $workTime->end_time;
+            $objStartTime = new DateTime($startTime);
+            $objEndTime = new DateTime($endTime);
+            // $startTime = new Carbon($workTime->start_time);
+            // $endTime = new Carbon($workTime->end_time);
+            $diffWorkTime = $objStartTime->diff($objEndTime);
+            
+            
+            foreach($workTime->break_times as $breakTime){
+                $breakIn = $breakTime->break_in;
+                $breakOut = $breakTime->break_out;
+                $objBreakIn = new DateTime($breakIn);
+                $objBreakOut = new DateTime($breakOut);
+                // $breakIn = new Carbon($breakTime->break_in);
+                // $breakOut = new Carbon($breakTime->break_out);
+                $diffBreakTime = $objBreakIn->diff($objBreakOut);
+            }
+        }
+        $totalWorkTimeDiff = $diffWorkTime->diff($diffBreakTime);
+        dd($totalWorkTimeDiff);
         $params = [
             'date' => $dt,
-            'attendance' => $attendance,
+            'attendances' => $attendances,
         ];
         return view('attendance', $params);
     }
