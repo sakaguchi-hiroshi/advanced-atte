@@ -39,15 +39,13 @@
             <th>休憩時間</th>
             <th>勤務時間</th>
           </tr>
-          @foreach($attendances as $workTime)
           <tr>
-            <td>{{ $attendance->name }}</td>
-            <td>{{ $workTime->start_time }}</td>
-            <td>{{ $workTime->end_Time }}</td>
+            <td>{{  }}</td>
+            <td>{{  }}</td>
+            <td>{{  }}</td>
             <td></td>
             <td></td>
           </tr>
-          @endforeach
         </table>
       </div>
     </div>
