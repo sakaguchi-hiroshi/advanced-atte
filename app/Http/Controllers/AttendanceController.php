@@ -64,47 +64,32 @@ class AttendanceController extends Controller
         session(['date' => $date]);
         return redirect()->back();
     }
-
-    public function show($date, Work_Time $work_time)
+    
+    public function show($date, Work_Time $work_time, Request $request)
     {
-        $dt = new Carbon(time: "{$date}");
-        $attendances = $work_time->whereDate('date', $dt)->with('user', 'break_times')->get();
-        foreach($attendances as $workTime){
-            $workStart = new Carbon($workTime->start_time);
-            $workEnd = new Carbon($workTime->end_time);
-            $diffStayHours = $workStart->diffInHours($workEnd);
-            $diffStayMinutes = $workStart->diffInMinutes($workEnd);
-            $diffStaySeconds = $workStart->diffInSeconds($workEnd);
-            
-            foreach($workTime->break_times as $breakTime){
-                $breakStart = new Carbon($breakTime->break_in);
-                $breakEnd = new Carbon($breakTime->break_out);
-                $diffBreakHours = $breakStart->diffInHours($breakEnd);
-                $diffBreakMinutes = $breakStart->diffInMinutes($breakEnd);
-                $diffBreakSeconds = $breakStart->diffInSeconds($breakEnd);
-            }
+        if($request->session()->missing('date')){
+            $dt = new Carbon(time: "{$date}");
+            $attendances = $work_time->whereDate('date', $dt)->with('user')->paginate(1);
+            $params = [
+                'date' => $dt,
+                'attendances' => $attendances,
+            ];
+            return view('attendance', $params);
+        }else{
+            $dt = new Carbon($request->session()->get('date'));
+            $attendances = $work_time->whereDate('date', $dt)->with('user')->paginate(1);
+            $params = [
+                'date' => $dt,
+                'attendances' => $attendances,
+            ];
+            $request->session()->forget('date');
+            return view('attendance', $params);
         }
-        $format = '%02d:%02d:%02d';
-        $workTimeHours = $diffStayHours - $diffBreakHours;
-        $workTimeMinutes = $diffStayMinutes - $diffBreakMinutes;
-        $workTimeSeconds = $diffStaySeconds - $diffBreakSeconds;
-        
-        $startTime = $workStart->format('H:i:s');
-        $endTime = $workEnd->format('H:i:s');
-        $totalWorkTime = sprintf($format, $workTimeHours, $workTimeMinutes, $workTimeSeconds);
-        $totalBreakTime = sprintf($format,$diffBreakHours, $diffBreakMinutes, $diffBreakSeconds);
-        $params = [
-            'date' => $dt,
-            'startTime' => $startTime,
-            'endTime' => $endTime,
-            'workTime' => $workTime,
-            'totalWorkTime' => $totalWorkTime,
-            'totalBreakTime' => $totalBreakTime,
-        ];
-        return view('attendance', $params);
     }
+
     public function operationDate(Request $request)
     {
-        //
+        session(['date' => $request->date]);
+        return redirect()->back();
     }
 }

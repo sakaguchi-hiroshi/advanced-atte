@@ -10,7 +10,7 @@
     <div class="header__inner">
       <h1 class="header__title">Atte</h1>
       <nav class="header__nav">
-        <a href="" class="home">ホーム</a>
+        <a href="{{ url('/work/stamp')}}" class="home">ホーム</a>
         <a href="{{ url('/work/calendar')}}" class="calendar">日付一覧</a>
         <a href="/logout" class="logout">ログアウト</a>
       </nav>
@@ -21,12 +21,14 @@
     <div class="mainWrapper">
       <div class="dateOuter">
         <form action="/work/attendance/date/prev" method="POST" class="datePrev">
-          <input type="hidden" name="date" value="{{$date->subMonthNoOverflow()}}">
+          @csrf
+          <input type="hidden" name="date" value="{{$date->subDay()}}">
           <input class="btnPrev" type="submit" value="<">
         </form>
-        <div class="date">{{ $date->addMonth() }}</div>
+        <div class="date">{{ $date->addDay()->format('Y-m-d') }}</div>
         <form action="/work/attendance/date/next" method="POST" class="dateNext">
-          <input type="hidden" name="date" value="{{$date->addMonthNoOverflow()}}">
+          @csrf
+          <input type="hidden" name="date" value="{{$date->addDay()}}">
           <input class="btnNext" type="submit" value=">">
         </form>
       </div>
@@ -39,15 +41,18 @@
             <th>休憩時間</th>
             <th>勤務時間</th>
           </tr>
+          @foreach($attendances as $workTime)
           <tr>
             <td>{{ $workTime->user->name }}</td>
-            <td>{{ $startTime }}</td>
-            <td>{{ $endTime }}</td>
-            <td>{{ $totalBreakTime }}</td>
-            <td>{{ $totalWorkTime }}</td>
+            <td>{{ \Carbon\Carbon::createFromTimeString($workTime->start_time)->format('H:i:s') }}</td>
+            <td>{{ \Carbon\Carbon::createFromTimeString($workTime->end_time)->format('H:i:s') }}</td>
+            <td>{{ \Carbon\Carbon::createFromTimeString($workTime->total_break_time)->format('H:i:s') }}</td>
+            <td>{{ \Carbon\Carbon::createFromTimeString($workTime->total_hours_worked)->format('H:i:s') }}</td>
           </tr>
+          @endforeach
         </table>
       </div>
+      {{ $attendances->links() }}
     </div>
     
   </main>

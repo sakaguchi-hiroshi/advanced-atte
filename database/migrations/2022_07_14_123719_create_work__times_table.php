@@ -19,6 +19,8 @@ class CreateWorkTimesTable extends Migration
             $table->date('date');
             $table->dateTime('start_time');
             $table->dateTime('end_time')->nullable();
+            $table->dateTime('total_hours_worked')->nullable();
+            $table->dateTime('total_break_time')->nullable();
             $table->timestamp('created_at')->useCurrent()->nullable();
             $table->timestamp('updated_at')->useCurrent()->nullable();
         });
