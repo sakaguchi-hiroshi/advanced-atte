@@ -16,32 +16,31 @@ use App\Http\Controllers\AttendanceController;
 |
 */
 Route::group(['prefix' => '/work'], function() {
-    Route::group(['middleware' => ['auth']], function() {
-        Route::get('/stamp', [WorkTimeController::class, 'index'])->name('stamp');
+    Route::get('/stamp', [WorkTimeController::class, 'index'])->name('stamp');
 
-        Route::post('/start', [WorkTimeController::class, 'create'])->name('stamp');
+    Route::post('/start', [WorkTimeController::class, 'create'])->name('stamp');
 
-        Route::post('/end', [WorkTimeController::class, 'update'])->name('stamp');
+    Route::post('/end', [WorkTimeController::class, 'update'])->name('stamp');
 
-        Route::post('/break/in', [BreakTimeController::class, 'create'])->name('stamp');
+    Route::post('/break/in', [BreakTimeController::class, 'create'])->name('stamp');
 
-        Route::post('/break/out', [BreakTimeController::class, 'update'])->name('stamp');
+    Route::post('/break/out', [BreakTimeController::class, 'update'])->name('stamp');
 
-        Route::get('/calendar', [AttendanceController::class, 'index'])->name('calendar');
+    Route::get('/calendar', [AttendanceController::class, 'index'])->name('calendar');
 
-        Route::post('/calendar/sub/month', [AttendanceController::class, 'selectedCalendar'])->name('calendar');
+    Route::post('/calendar/sub/month', [AttendanceController::class, 'selectedCalendar'])->name('calendar');
 
-        Route::post('/calendar/add/month', [AttendanceController::class, 'selectedCalendar'])->name('calendar');
+    Route::post('/calendar/add/month', [AttendanceController::class, 'selectedCalendar'])->name('calendar');
 
-        Route::post('/calendar/select/month', [AttendanceController::class, 'selectedMonthCalendar'])->name('calendar');
+    Route::post('/calendar/select/month', [AttendanceController::class, 'selectedMonthCalendar'])->name('calendar');
 
-        Route::get('/attendance/{date}', [AttendanceController::class, 'show'])->name('attendance');
+    Route::get('/attendance/{date}', [AttendanceController::class, 'show'])->name('attendance');
 
-        Route::post('/attendance/date/prev', [AttendanceController::class, 'operationDate'])->name('attendance');
+    Route::post('/attendance/date/prev', [AttendanceController::class, 'operationDate'])->name('attendance');
 
-        Route::post('/attendance/date/next', [AttendanceController::class, 'operationDate'])->name('attendance');
-
-    });
+    Route::post('/attendance/date/next', [AttendanceController::class, 'operationDate'])->name('attendance');
 });
+
+Route::get('/logout', [WorkTimeController::class, 'logout']);
 
 require __DIR__.'/auth.php';

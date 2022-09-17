@@ -242,4 +242,12 @@ class WorkTimeController extends Controller
             }
         }
     }
+    public function logout(){
+        Auth::logout();
+        return redirect('/login');
+    }
+
+    public function __construct(){
+        $this->middleware('auth');
+    }
 }
