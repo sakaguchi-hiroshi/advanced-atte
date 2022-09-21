@@ -69,7 +69,8 @@ class AttendanceController extends Controller
     {
         if($request->session()->missing('date')){
             $dt = new Carbon(time: "{$date}");
-            $attendances = $work_time->whereDate('date', $dt)->with('user')->paginate(5);
+            $attendances = $work_time->whereDate('date', $dt)
+            ->whereNotNull('end_time')->with('user')->paginate(5);
             $params = [
                 'date' => $dt,
                 'attendances' => $attendances,
@@ -77,7 +78,8 @@ class AttendanceController extends Controller
             return view('attendance', $params);
         }else{
             $dt = new Carbon($request->session()->get('date'));
-            $attendances = $work_time->whereDate('date', $dt)->with('user')->paginate(5);
+            $attendances = $work_time->whereDate('date', $dt)
+            ->whereNotNull('end_time')->with('user')->paginate(5);
             $params = [
                 'date' => $dt,
                 'attendances' => $attendances,

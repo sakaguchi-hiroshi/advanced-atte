@@ -16,39 +16,31 @@ class WorkTimeController extends Controller
         return view('stamp', ['authuser' => $authuser]);
     }
 
-    public function create(Request $request)
+    public function create()
     {
         $user = Auth::user();
         $latestWorkTime = Work_Time::where('user_id', $user->id)->latest()->first();
-
         $oldDay = '';
+        $today = Carbon::today();
 
         if($latestWorkTime) {
             $startTime = new Carbon($latestWorkTime->start_time);
-            $oldDay = $startTime->startOfDay();
+            $oldDay = $startTime->copy()->startOfDay();
         }
-
-        $today = Carbon::today();
 
         if(($oldDay == $today) && (empty($latestWorkTime->end_time))) {
             return redirect()->back()->with('message', '出勤打刻済みです');
         }
 
-        $date = new Carbon();
-        $date = [
+        Work_Time::create([
+            'user_id' => $user->id,
             'date' => Carbon::today(),
             'start_time' => Carbon::now(),
-        ];
-        $this->validate($request, $date, Work_Time::$rules);
-        Work_Time::create([
-            'user_id' => $request->user_id,
-            'date' => $date['date'],
-            'start_time' => $date['start_time'],
         ]);
         return redirect('/work/stamp');
     }
     
-    public function update(Request $request)
+    public function update()
     {
         $user = Auth::user();
         $latestWorkTime = Work_Time::where('user_id', $user->id)->latest()->first();
@@ -59,77 +51,45 @@ class WorkTimeController extends Controller
         $addDay = $oldDay->copy()->addDay();
         $today = Carbon::today();
         $now = Carbon::now();
-        // dd($latestBreakTime);
-        
+
         if($latestWorkTime) {
             if(empty($latestWorkTime->end_time)) {
-                if(empty($latestBreakTime->break_in) && empty($latestBreakTime->break_out) && $addDay == $today){
+                if(!$latestBreakTime && $addDay == $today){
                     $workStart = new Carbon($latestWorkTime->start_time);
                     $endOfDay = new Carbon($oldDay->copy()->endOfDay());
-                    $diffStayHours = $workStart->diffInHours($endOfDay);
-                    $diffStayMinutes = $workStart->diffInMinutes($endOfDay);
-                    $diffStaySeconds = $workStart->diffInSeconds($endOfDay);
-                    $totalHoursWorked = $oldDay->copy()->setTime($diffStayHours, $diffStayMinutes, $diffStaySeconds);
-                    $date = [
-                        'date' => $oldDay,
+                    $diffStaySeconds = $workStart->copy()->diffInSeconds($endOfDay);
+                    $totalHoursWorked = new Carbon($oldDay);
+                    $totalHoursWorked->second = $diffStaySeconds;
+
+                    $latestWorkTime->update([
                         'end_time' => $endOfDay,
                         'total_hours_worked' => $totalHoursWorked,
                         'total_break_time' => $oldDay,
-                    ];
-                    $this->validate($request, $date, Work_Time::$rules);
-                    $latestWorkTime->update([
-                        'user_id' => $request->user_id,
-                        'date' => $date['date'],
-                        'end_time' => $date['end_time'],
-                        'total_hours_worked' => $date['total_hours_worked'],
-                        'total_break_time' => $date['total_break_time'],
                     ]);
-                    $todaysStayHours = $today->diffInHours($now);
-                    $todaysStayMinutes = $today->diffInMinutes($now);
+
                     $todaysStaySeconds = $today->diffInSeconds($now);
+                    $todaysTotalHoursWorked = new Carbon($today);
+                    $todaysTotalHoursWorked->second = $todaysStaySeconds;
 
-                    $todaysTotalHoursWorked = $today->copy()->setTime($todaysStayHours, $todaysStayMinutes, $todaysStaySeconds);
-
-                    $date = [
+                    Work_Time::create([
+                        'user_id' => $user->id,
                         'date' => $today,
                         'start_time' => $today,
                         'end_time' => $now,
                         'total_hours_worked' => $todaysTotalHoursWorked,
                         'total_break_time' => $today,
-                    ];
-                    $this->validate($request, $date, Work_Time::$rules);
-                    Work_Time::create([
-                        'user_id' => $request->user_id,
-                        'date' => $date['date'],
-                        'start_time' => $date['start_time'],
-                        'end_time' => $date['end_time'],
-                        'total_hours_worked' => $date['total_hours_worked'],
-                        'total_break_time' => $date['total_break_time'],
                     ]);
                     return redirect('/work/stamp');
-                }elseif (empty($latestBreakTime->break_in) && empty($latestBreakTime->break_out)) {
+                }elseif (!$latestBreakTime) {
                     $workStart = new Carbon($latestWorkTime->start_time);
-                    $diffStayHours = $workStart->diffInHours($now);
-                    $diffStayMinutes = $workStart->diffInMinutes($now);
                     $diffStaySeconds = $workStart->diffInSeconds($now);
+                    $totalHoursWorked = new Carbon($today);
+                    $totalHoursWorked->second = $diffStaySeconds;
 
-                    $totalHoursWorked = $today->copy()->setTime($diffStayHours, $diffStayMinutes, $diffStaySeconds);
-
-                    $date = [
-                        'date' => $today,
-                        'start_time' => $latestWorkTime->start_time,
+                    $latestWorkTime->update([
                         'end_time' => $now,
                         'total_hours_worked' => $totalHoursWorked,
                         'total_break_time' => $today,
-                    ];
-                    $this->validate($request, $date, Work_Time::$rules);
-                    $latestWorkTime->update([
-                        'user_id' => $request->user_id,
-                        'date' => $date['date'],
-                        'start_time' => $date['start_time'],
-                        'end_time' => $date['end_time'],
-                        'total_hours_worked' => $date['total_hours_worked'],
-                        'total_break_time' => $date['total_break_time'],
                     ]);
                     return redirect('/work/stamp');
                 }elseif ($latestBreakTime->break_in && !($latestBreakTime->break_out)){
@@ -137,103 +97,61 @@ class WorkTimeController extends Controller
                 }elseif ($addDay == $today) {
                     $workStart = new Carbon($latestWorkTime->start_time);
                     $endOfDay = new Carbon($oldDay->copy()->endOfDay());
-                    $diffStayHours = $workStart->diffInHours($endOfDay);
-                    $diffStayMinutes = $workStart->diffInMinutes($endOfDay);
                     $diffStaySeconds = $workStart->diffInSeconds($endOfDay);
+
                     foreach($breakTimes as $breakTime){
                         $breakStart = new Carbon($breakTime->break_in);
                         $breakEnd = new Carbon($breakTime->break_out);
-                        $diffBreakHours[] = $breakStart->diffInHours($breakEnd);
-                        $diffBreakMinutes[] = $breakStart->diffInMinutes($breakEnd);
                         $diffBreakSeconds[] = $breakStart->diffInSeconds($breakEnd);
                     }
-                    $totalBreakHours = array_sum($diffBreakHours);
-                    $totalBreakMinutes = array_sum($diffBreakMinutes);
+
                     $totalBreakSeconds = array_sum($diffBreakSeconds);
-
-                    $workTimeHours = $diffStayHours - $totalBreakHours;
-                    $workTimeMinutes = $diffStayMinutes - $totalBreakMinutes;
                     $workTimeSeconds = $diffStaySeconds - $totalBreakSeconds;
+                    $totalHoursWorked = new Carbon($oldDay);
+                    $totalHoursWorked->second = $workTimeSeconds;
+                    $totalBreakTime = new Carbon($oldDay);
+                    $totalBreakTime->second = $totalBreakSeconds;
 
-                    $totalHoursWorked = $oldDay->copy()->setTime($workTimeHours, $workTimeMinutes, $workTimeSeconds);
-                    $totalBreakTime = $oldDay->copy()->setTime($totalBreakHours, $totalBreakMinutes, $totalBreakSeconds);
-                    $date = [
-                        'date' => $oldDay,
+                    $latestWorkTime->update([
                         'end_time' => $endOfDay,
                         'total_hours_worked' => $totalHoursWorked,
                         'total_break_time' => $totalBreakTime,
-                    ];
-                    $this->validate($request, $date, Work_Time::$rules);
-                    $latestWorkTime->update([
-                        'user_id' => $request->user_id,
-                        'date' => $date['date'],
-                        'end_time' => $date['end_time'],
-                        'total_hours_worked' => $date['total_hours_worked'],
-                        'total_break_time' => $date['total_break_time'],
                     ]);
 
-                    $todaysStayHours = $today->diffInHours($now);
-                    $todaysStayMinutes = $today->diffInMinutes($now);
                     $todaysStaySeconds = $today->diffInSeconds($now);
+                    $todaysTotalHoursWorked = new Carbon($today);
+                    $todaysTotalHoursWorked->second = $todaysStaySeconds;
 
-                    $todaysTotalHoursWorked = $today->copy()->setTime($todaysStayHours, $todaysStayMinutes, $todaysStaySeconds);
-
-                    $date = [
+                    Work_Time::create([
+                        'user_id' => $user->id,
                         'date' => $today,
                         'start_time' => $today,
                         'end_time' => $now,
                         'total_hours_worked' => $todaysTotalHoursWorked,
                         'total_break_time' => $today,
-                    ];
-                    $this->validate($request, $date, Work_Time::$rules);
-                    Work_Time::create([
-                        'user_id' => $request->user_id,
-                        'date' => $date['date'],
-                        'start_time' => $date['start_time'],
-                        'end_time' => $date['end_time'],
-                        'total_hours_worked' => $date['total_hours_worked'],
-                        'total_break_time' => $date['total_break_time'],
                     ]);
                     return redirect('/work/stamp');
                 }else {
                     $workStart = new Carbon($latestWorkTime->start_time);
-                    $diffStayHours = $workStart->diffInHours($now);
-                    $diffStayMinutes = $workStart->diffInMinutes($now);
                     $diffStaySeconds = $workStart->diffInSeconds($now);
-
+                    
                     foreach($breakTimes as $breakTime){
                         $breakStart = new Carbon($breakTime->break_in);
                         $breakEnd = new Carbon($breakTime->break_out);
-                        $diffBreakHours[] = $breakStart->diffInHours($breakEnd);
-                        $diffBreakMinutes[] = $breakStart->diffInMinutes($breakEnd);
                         $diffBreakSeconds[] = $breakStart->diffInSeconds($breakEnd);
                     }
-                    $totalBreakHours = array_sum($diffBreakHours);
-                    $totalBreakMinutes = array_sum($diffBreakMinutes);
+
                     $totalBreakSeconds = array_sum($diffBreakSeconds);
-
-                    $workTimeHours = $diffStayHours - $totalBreakHours;
-                    $workTimeMinutes = $diffStayMinutes - $totalBreakMinutes;
                     $workTimeSeconds = $diffStaySeconds - $totalBreakSeconds;
-
-                    $totalHoursWorked = $today->copy()->setTime($workTimeHours, $workTimeMinutes, $workTimeSeconds);
-                    $totalBreakTime = $today->copy()->setTime($totalBreakHours, $totalBreakMinutes, $totalBreakSeconds);
-
-                    $date = [
-                        'date' => $today,
-                        'start_time' => $latestWorkTime->start_time,
+                    $totalHoursWorked = new Carbon($today);
+                    $totalHoursWorked->second = $workTimeSeconds;
+                    $totalBreakTime = new Carbon($today);
+                    $totalBreakTime->second = $totalBreakSeconds;
+                    
+                    $latestWorkTime->update([
                         'end_time' => $now,
                         'total_hours_worked' => $totalHoursWorked,
                         'total_break_time' => $totalBreakTime,
-                    ];
-                    $this->validate($request, $date, Work_Time::$rules);
-                    $latestWorkTime->update([
-                        'user_id' => $request->user_id,
-                        'date' => $date['date'],
-                        'start_time' => $date['start_time'],
-                        'end_time' => $date['end_time'],
-                        'total_hours_worked' => $date['total_hours_worked'],
-                        'total_break_time' => $date['total_break_time'],
                     ]);
                     return redirect('/work/stamp');
                 }
